@@ -1,0 +1,7 @@
+{
+  "buildCommand": "",
+  "installCommand": "",
+  "outputDirectory": ".",
+  "fallbackFile": "index.html",
+  "entrypoint": "index.html"
+} 

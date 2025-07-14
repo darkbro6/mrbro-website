@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Social Media Posts</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a; /* Dark background */
+            color: #e0e0e0; /* Light text */
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background-color: #2a2a2a; /* Slightly lighter dark background for container */
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+            border: 1px solid #4a4a4a;
+        }
+        .post-card {
+            background-color: #3a3a3a;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            border: 1px solid #5a5a5a;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .post-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+        }
+        .post-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: block; /* Ensures image takes full width */
+        }
+        .message-box {
+            background-color: #333;
+            color: #fff;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 500;
+            border: 1px solid #555;
+        }
+        .message-box.success {
+            background-color: #16a34a; /* Green-600 */
+            border-color: #15803d;
+        }
+        .message-box.error {
+            background-color: #dc2626; /* Red-600 */
+            border-color: #b91c1c;
+        }
+        .btn {
+            padding: 0.8rem 1.8rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.4);
+        }
+        .btn-primary {
+            background-color: #ff0000; /* YouTube Red */
+            color: white;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #cc0000;
+        }
+        .btn-secondary {
+            background-color: #4a4a4a;
+            color: #e0e0e0;
+            border: none;
+        }
+        .btn-secondary:hover {
+            background-color: #5a5a5a;
+        }
+        .btn-danger {
+            background-color: #dc2626; /* Red-600 */
+            color: white;
+            border: none;
+        }
+        .btn-danger:hover {
+            background-color: #b91c1c; /* Red-700 */
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+            color: white;
+            font-size: 1.3rem;
+        }
+        .spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid #ff0000;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Custom confirmation dialog styles */
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .dialog-box {
+            background-color: #2a2a2a;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid #4a4a4a;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading posts...</p>
+    </div>
+
+    <div class="container hidden" id="main-content">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-white">All Social Media Posts</h1>
+            <a href="admin_panel.html" class="btn btn-secondary text-sm">Back to Admin Panel</a>
+        </div>
+        <p class="text-gray-400 mb-8 text-lg">
+            සියලුම Social Media Posts මෙහි දර්ශනය වේ. ඔබට ඒවා සංස්කරණය කිරීමට හෝ මකා දැමීමට හැකිය.
+        </p>
+
+        <div id="messageBox" class="message-box hidden"></div>
+        <div id="postsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <p class="text-gray-400 text-center col-span-full" id="loadingMessage">Loading posts...</p>
+            <!-- Posts will be loaded here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, doc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        // Global variables from Canvas environment (මෙම පේළි එලෙසම තබන්න)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        
+        // ඔබගේ firebaseConfig.js ගොනුවේ ඇති සත්‍ය Firebase Config එක මෙහි hardcode කරන්න
+        const firebaseConfig = {
+            apiKey: "AIzaSyAS_398XSo2PPQo27IhnKUUn_-FX7Xl8Zo", // ඔබේ API Key
+            authDomain: "yttest01-47db9.firebaseapp.com",
+            projectId: "yttest01-47db9", // ඔබේ Project ID
+            storageBucket: "yttest01-47db9.firebasestorage.app",
+            messagingSenderId: "1036130118904",
+            appId: "1:1036130118904:web:da3416195b3480c9e01f0d",
+            measurementId: "G-FRHT3PK0FE"
+        };
+
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // UI Elements
+        const postsList = document.getElementById('postsList');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const messageBox = document.getElementById('messageBox');
+        const mainContent = document.getElementById('main-content');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        let currentUserId = null; // To store the authenticated user ID
+        let authCheckCompleted = false; // Flag to ensure auth state is checked
+
+        // --- Utility Functions ---
+        function showMessage(message, type = 'info', targetBox = messageBox) {
+            targetBox.textContent = message;
+            targetBox.className = `message-box ${type} block`;
+            setTimeout(() => {
+                targetBox.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // --- Firebase Authentication ---
+        onAuthStateChanged(auth, (user) => {
+            authCheckCompleted = true; // Set flag when auth state is known
+            if (user) {
+                currentUserId = user.uid;
+                console.log("User signed in:", user.email, "UID:", user.uid);
+                loadingOverlay.classList.add('hidden'); // Hide loading overlay
+                mainContent.classList.remove('hidden'); // Show main content
+                listenToPosts(); // Start listening to posts
+            } else {
+                console.log("User signed out or not authenticated. Redirecting to index.html");
+                window.location.href = 'index.html'; 
+            }
+        });
+
+        // --- CRUD Operations (Delete only on this page) ---
+
+        // Delete a post
+        postsList.addEventListener('click', async (event) => {
+            if (!currentUserId) {
+                showMessage("You must be logged in to delete posts.", "error");
+                return;
+            }
+
+            if (event.target.classList.contains('delete-btn')) {
+                const postIdToDelete = event.target.dataset.id;
+                // Using a custom modal for confirmation instead of window.confirm
+                showConfirmationDialog('Are you sure you want to delete this post?', async () => {
+                    try {
+                        // Changed document path to 'socialMediaPosts' as requested
+                        await deleteDoc(doc(db, `socialMediaPosts`, postIdToDelete));
+                        showMessage("Post deleted successfully!", "success");
+                    } catch (e) {
+                        console.error("Error deleting document: ", e);
+                        showMessage("Error deleting post. Please try again.", "error");
+                    }
+                });
+            } else if (event.target.classList.contains('edit-btn')) {
+                const postIdToEdit = event.target.dataset.id;
+                // Redirect to admin_panel.html with the post ID for editing
+                window.location.href = `admin_panel.html?editId=${postIdToEdit}`;
+            }
+        });
+
+        // Custom Confirmation Dialog (Replaces window.confirm)
+        function showConfirmationDialog(message, onConfirm) {
+            const dialogOverlay = document.createElement('div');
+            dialogOverlay.className = 'dialog-overlay';
+            dialogOverlay.innerHTML = `
+                <div class="dialog-box">
+                    <p class="text-white text-lg mb-6">${message}</p>
+                    <div class="flex justify-center gap-4">
+                        <button id="confirmBtn" class="btn btn-danger">Yes, Delete</button>
+                        <button id="cancelBtn" class="btn btn-secondary">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(dialogOverlay);
+
+            document.getElementById('confirmBtn').addEventListener('click', () => {
+                onConfirm();
+                dialogOverlay.remove();
+            });
+
+            document.getElementById('cancelBtn').addEventListener('click', () => {
+                dialogOverlay.remove();
+            });
+        }
+
+
+        // --- Real-time Listener for Posts ---
+
+        function listenToPosts() {
+            if (!currentUserId) {
+                console.log("Not authenticated, skipping Firestore listener.");
+                return;
+            }
+
+            // Changed collection path to 'socialMediaPosts' as requested
+            onSnapshot(collection(db, `socialMediaPosts`), (snapshot) => {
+                postsList.innerHTML = ''; // Clear existing posts
+                if (snapshot.empty) {
+                    postsList.innerHTML = '<p class="text-gray-400 text-center col-span-full">No posts found. Add one from the Admin Panel!</p>';
+                    return;
+                }
+                loadingMessage.classList.add('hidden'); // Hide loading message
+
+                const sortedPosts = snapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0)); // Sort by timestamp
+
+                sortedPosts.forEach(post => {
+                    const postCard = document.createElement('div');
+                    postCard.classList.add('post-card');
+                    postCard.dataset.id = post.id; // Store document ID for easy access
+
+                    const imageUrlHtml = post.imageUrl ? `<img src="${post.imageUrl}" alt="Post Image">` : '';
+                    const postUrlHtml = post.postUrl ? `<a href="${post.postUrl}" target="_blank" class="post-url text-blue-400 hover:underline text-sm block mt-4">View Original Post</a>` : '';
+                    const timestamp = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'N/A';
+
+                    postCard.innerHTML = `
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-base text-gray-300 font-semibold post-platform">${post.platform ? post.platform.toUpperCase() : 'N/A'}</span>
+                            <span class="text-xs text-gray-500">${timestamp}</span>
+                        </div>
+                        ${imageUrlHtml}
+                        <h3 class="text-gray-100 text-xl font-bold mb-2 post-title">${post.Titel || 'No Title'}</h3>
+                        <p class="text-gray-300 text-base mb-3 post-body">${post.Body || 'No Body'}</p>
+                        ${postUrlHtml}
+                        <div class="flex flex-col sm:flex-row gap-3 mt-5">
+                            <button class="edit-btn btn btn-secondary text-base flex-1" data-id="${post.id}">Edit</button>
+                            <button class="delete-btn btn btn-danger text-base flex-1" data-id="${post.id}">Delete</button>
+                        </div>
+                    `;
+                    postsList.appendChild(postCard);
+                });
+            }, (error) => {
+                console.error("Error fetching posts:", error);
+                showMessage("Error loading posts. Please check console.", "error");
+                loadingMessage.textContent = "Error loading posts.";
+            });
+        }
+    </script>
+</body>
+</html>

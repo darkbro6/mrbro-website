@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meya Mama Social Media Admin Panel - Appwrite</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Appwrite SDK -->
+    <script src="https://unpkg.com/appwrite@13.0.1/dist/appwrite.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a; /* Dark background */
+            color: #e0e0e0; /* Light text */
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background-color: #2a2a2a; /* Slightly lighter dark background for container */
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+            border: 1px solid #4a4a4a;
+        }
+        .input-field {
+            background-color: #3a3a3a;
+            border: 1px solid #4a4a4a;
+            color: #e0e0e0;
+            padding: 0.85rem 1.25rem;
+            border-radius: 10px;
+            width: 100%;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #ff0000; /* YouTube Red */
+            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.3);
+        }
+        .btn {
+            padding: 0.9rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+        .btn-primary {
+            background-color: #ff0000; /* YouTube Red */
+            color: white;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #cc0000;
+        }
+        .btn-secondary {
+            background-color: #4a4a4a;
+            color: #e0e0e0;
+            border: none;
+        }
+        .btn-secondary:hover {
+            background-color: #5a5a5a;
+        }
+        .btn-danger {
+            background-color: #dc2626; /* Red-600 */
+            color: white;
+            border: none;
+        }
+        .btn-danger:hover {
+            background-color: #b91c1c; /* Red-700 */
+        }
+        .message-box {
+            background-color: #333;
+            color: #fff;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 500;
+            border: 1px solid #555;
+        }
+        .message-box.success {
+            background-color: #16a34a; /* Green-600 */
+            border-color: #15803d;
+        }
+        .message-box.error {
+            background-color: #dc2626; /* Red-600 */
+            border-color: #b91c1c;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+            color: white;
+            font-size: 1.3rem;
+        }
+        .spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid #ff0000;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading admin panel...</p>
+    </div>
+
+    <div id="admin-panel-content" class="container hidden">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-white">Social Media Admin Panel - Appwrite</h1>
+            <button id="logoutBtn" class="btn btn-secondary text-sm">Logout</button>
+        </div>
+        <p class="text-gray-400 mb-8 text-lg">
+            Appwrite Database වෙත Social Media Posts එකතු කිරීමට, සංස්කරණය කිරීමට.
+        </p>
+
+        <div id="messageBox" class="message-box hidden"></div>
+
+        <div class="mb-10 p-8 bg-gray-700 rounded-xl shadow-inner border border-gray-600">
+            <h2 class="text-2xl font-semibold mb-6 text-white border-b border-gray-500 pb-3">Add/Edit Post</h2>
+            <input type="hidden" id="postId">
+
+            <div class="mb-5">
+                <label for="platform" class="block text-gray-300 text-base font-medium mb-2">Platform:</label>
+                <select id="platform" class="input-field">
+                    <option value="facebook">Facebook</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="twitter">Twitter</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="tiktok">TikTok</option>
+                </select>
+            </div>
+
+            <div class="mb-5">
+                <label for="postTitle" class="block text-gray-300 text-base font-medium mb-2">Titel (Title):</label>
+                <textarea id="postTitle" class="input-field h-20 resize-y" placeholder="Post title here..."></textarea>
+            </div>
+
+            <div class="mb-5">
+                <label for="postBody" class="block text-gray-300 text-base font-medium mb-2">Body (Description):</label>
+                <textarea id="postBody" class="input-field h-32 resize-y" placeholder="Post body/description here..."></textarea>
+            </div>
+
+            <div class="mb-5">
+                <label for="imageUrl" class="block text-gray-300 text-base font-medium mb-2">Image URL (Optional):</label>
+                <input type="url" id="imageUrl" class="input-field" placeholder="https://example.com/image.jpg">
+            </div>
+
+            <div class="mb-8">
+                <label for="postUrl" class="block text-gray-300 text-base font-medium mb-2">Original Post URL (Optional):</label>
+                <input type="url" id="postUrl" class="input-field" placeholder="https://facebook.com/yourpage/post/123">
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button id="addPostBtn" class="btn btn-primary flex-1">Add New Post</button>
+                <button id="updatePostBtn" class="btn btn-secondary flex-1 hidden">Update Post</button>
+                <button id="cancelEditBtn" class="btn btn-secondary flex-1 hidden">Cancel Edit</button>
+            </div>
+        </div>
+
+        <!-- Section to view all posts -->
+        <div class="mb-8 p-8 bg-gray-700 rounded-xl shadow-inner border border-gray-600 text-center">
+            <h2 class="text-2xl font-semibold mb-6 text-white border-b border-gray-500 pb-3">Posts View & Management</h2>
+            <p class="text-gray-400 mb-6 text-lg">සියලුම posts බලන්න, සංස්කරණය කරන්න, සහ මකා දැමීමට.</p>
+            <a href="view_posts.html" class="btn btn-primary inline-block">View & Manage Posts</a>
+        </div>
+
+    </div>
+
+    <script>
+        // Appwrite Configuration
+        const APPWRITE_ENDPOINT = 'https://cloud.appwrite.io/v1';
+        const APPWRITE_PROJECT_ID = '687425e6660c0976dbf6';
+        const APPWRITE_DATABASE_ID = '6874266c00252c1da738';
+        const APPWRITE_POSTS_COLLECTION_ID = '68758264003b1f15aa8b';
+        const APPWRITE_API_KEY = 'your-api-key-here'; // Replace with your actual API key
+
+        // Initialize Appwrite Client
+        const client = new Appwrite.Client()
+            .setEndpoint(APPWRITE_ENDPOINT)
+            .setProject(APPWRITE_PROJECT_ID)
+            .setKey(APPWRITE_API_KEY);
+
+        // Initialize Appwrite Databases
+        const databases = new Appwrite.Databases(client);
+
+        // UI Elements
+        const logoutBtn = document.getElementById('logoutBtn');
+        const postIdInput = document.getElementById('postId');
+        const platformSelect = document.getElementById('platform');
+        const postTitleInput = document.getElementById('postTitle'); 
+        const postBodyInput = document.getElementById('postBody');   
+        const imageUrlInput = document.getElementById('imageUrl');
+        const postUrlInput = document.getElementById('postUrl');
+        const addPostBtn = document.getElementById('addPostBtn');
+        const updatePostBtn = document.getElementById('updatePostBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const messageBox = document.getElementById('messageBox');
+        const adminPanelContent = document.getElementById('admin-panel-content');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        // --- Utility Functions ---
+        function showMessage(message, type = 'info', targetBox = messageBox) {
+            targetBox.textContent = message;
+            targetBox.className = `message-box ${type} block`;
+            setTimeout(() => {
+                targetBox.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        function clearForm() {
+            postIdInput.value = '';
+            platformSelect.value = 'facebook';
+            postTitleInput.value = ''; 
+            postBodyInput.value = '';  
+            imageUrlInput.value = '';
+            postUrlInput.value = '';
+            addPostBtn.classList.remove('hidden');
+            updatePostBtn.classList.add('hidden');
+            cancelEditBtn.classList.add('hidden');
+        }
+
+        function populateFormForEdit(post) {
+            postIdInput.value = post.$id;
+            platformSelect.value = post.platform;
+            postTitleInput.value = post.Titel || ''; 
+            postBodyInput.value = post.Body || '';   
+            imageUrlInput.value = post.imageUrl || '';
+            postUrlInput.value = post.postUrl || '';
+            addPostBtn.classList.add('hidden');
+            updatePostBtn.classList.remove('hidden');
+            cancelEditBtn.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top to see the form
+        }
+
+        // Initialize the admin panel
+        function initializeAdminPanel() {
+            loadingOverlay.classList.add('hidden');
+            adminPanelContent.classList.remove('hidden');
+
+            // Check for editId in URL on page load
+            const urlParams = new URLSearchParams(window.location.search);
+            const editId = urlParams.get('editId');
+            if (editId) {
+                fetchPostForEdit(editId);
+            }
+        }
+
+        // Handle Logout (simple redirect for now)
+        logoutBtn.addEventListener('click', () => {
+            showMessage("Logged out successfully!", "success");
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+        });
+
+        // --- CRUD Operations ---
+
+        // Add a new post
+        addPostBtn.addEventListener('click', async () => {
+            const platform = platformSelect.value;
+            const titel = postTitleInput.value.trim(); 
+            const body = postBodyInput.value.trim();   
+            const imageUrl = imageUrlInput.value.trim();
+            const postUrl = postUrlInput.value.trim();
+
+            if (!titel || !body) { 
+                showMessage("Titel and Body cannot be empty.", "error");
+                return;
+            }
+
+            try {
+                const postData = {
+                    platform: platform,
+                    Titel: titel, 
+                    Body: body,   
+                    imageUrl: imageUrl || null, 
+                    postUrl: postUrl || null,   
+                    timestamp: new Date().toISOString(),
+                    isActive: true
+                };
+
+                await databases.createDocument(
+                    APPWRITE_DATABASE_ID,
+                    APPWRITE_POSTS_COLLECTION_ID,
+                    Appwrite.ID.unique(),
+                    postData
+                );
+                
+                showMessage("Post added successfully!", "success");
+                clearForm();
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                showMessage("Error adding post. Please try again.", "error");
+            }
+        });
+
+        // Update an existing post
+        updatePostBtn.addEventListener('click', async () => {
+            const postId = postIdInput.value;
+            const platform = platformSelect.value;
+            const titel = postTitleInput.value.trim(); 
+            const body = postBodyInput.value.trim();   
+            const imageUrl = imageUrlInput.value.trim();
+            const postUrl = postUrlInput.value.trim();
+
+            if (!postId || !titel || !body) { 
+                showMessage("Post ID, Titel, and Body cannot be empty for update.", "error");
+                return;
+            }
+
+            try {
+                const postData = {
+                    platform: platform,
+                    Titel: titel, 
+                    Body: body,   
+                    imageUrl: imageUrl || null,
+                    postUrl: postUrl || null,
+                };
+
+                await databases.updateDocument(
+                    APPWRITE_DATABASE_ID,
+                    APPWRITE_POSTS_COLLECTION_ID,
+                    postId,
+                    postData
+                );
+                
+                showMessage("Post updated successfully!", "success");
+                clearForm();
+                // After update, redirect back to view_posts.html or clear the editId from URL
+                window.history.pushState({}, document.title, window.location.pathname); // Clear URL parameter
+            } catch (e) {
+                console.error("Error updating document: ", e);
+                showMessage("Error updating post. Please try again.", "error");
+            }
+        });
+
+        // Cancel edit
+        cancelEditBtn.addEventListener('click', clearForm);
+
+        // Function to fetch post for editing when editId is in URL
+        async function fetchPostForEdit(postId) {
+            try {
+                const postDoc = await databases.getDocument(
+                    APPWRITE_DATABASE_ID,
+                    APPWRITE_POSTS_COLLECTION_ID,
+                    postId
+                );
+                
+                populateFormForEdit(postDoc);
+            } catch (e) {
+                console.error("Error fetching post for edit:", e);
+                showMessage("Error loading post for editing. Please try again.", "error");
+            }
+        }
+
+        // Initialize the panel when page loads
+        document.addEventListener('DOMContentLoaded', initializeAdminPanel);
+    </script>
+</body>
+</html>
