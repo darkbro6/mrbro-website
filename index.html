@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>Appwrite Test Login</title>
-  <script src="https://unpkg.com/appwrite"></script>
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.1"></script>
 </head>
 <body>
   <input id="email" placeholder="Email"><br>
@@ -10,7 +10,6 @@
   <button id="login">Login</button>
   <div id="result"></div>
   <script>
-    // This code runs after Appwrite is loaded
     const client = new Appwrite.Client();
     client.setEndpoint('https://fra.cloud.appwrite.io/v1').setProject('687425e6660c0976dbf6');
     const account = new Appwrite.Account(client);
