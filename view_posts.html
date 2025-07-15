@@ -339,5 +339,63 @@
             });
         }
     </script>
+    <script src="https://unpkg.com/appwrite"></script>
+    <script>
+        // Appwrite Config
+        const APPWRITE_ENDPOINT = 'https://cloud.appwrite.io/v1';
+        const APPWRITE_PROJECT_ID = '687425e6660c0976dbf6';
+        const APPWRITE_DATABASE_ID = '6874266c00252c1da738';
+        const APPWRITE_POSTS_COLLECTION_ID = '68758264003b1f15aa8b';
+        // Initialize Appwrite
+        const client = new Appwrite.Client();
+        client.setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
+        const databases = new Appwrite.Databases(client);
+        // UI Elements (declare only once)
+        const postsList = document.getElementById('postsList');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const messageBox = document.getElementById('messageBox');
+        const mainContent = document.getElementById('main-content');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        // Utility
+        function showMessage(message, type = 'info', targetBox = messageBox) {
+            targetBox.textContent = message;
+            targetBox.className = `message-box ${type} block`;
+            setTimeout(() => {
+                targetBox.classList.add('hidden');
+            }, 3000);
+        }
+        // Fetch posts from Appwrite
+        async function fetchPosts() {
+            try {
+                const response = await databases.listDocuments(
+                    APPWRITE_DATABASE_ID,
+                    APPWRITE_POSTS_COLLECTION_ID
+                );
+                postsList.innerHTML = '';
+                if (response.documents.length === 0) {
+                    postsList.innerHTML = '<p class="text-gray-400 text-center col-span-full">No posts found.</p>';
+                } else {
+                    response.documents.forEach(post => {
+                        const card = document.createElement('div');
+                        card.className = 'post-card';
+                        card.innerHTML = `
+                            ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post Image">` : ''}
+                            <h3 class="text-xl font-bold mb-2">${post.Titel || 'No Title'}</h3>
+                            <p class="mb-2">${post.Body || ''}</p>
+                            <p class="text-sm text-gray-400 mb-2">Platform: ${post.platform || ''}</p>
+                            ${post.postUrl ? `<a href="${post.postUrl}" class="text-blue-400 underline" target="_blank">Original Post</a>` : ''}
+                        `;
+                        postsList.appendChild(card);
+                    });
+                }
+                loadingOverlay.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+            } catch (err) {
+                showMessage('Error fetching posts: ' + err.message, 'error');
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+        fetchPosts();
+    </script>
 </body>
 </html>

@@ -11,8 +11,8 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1a1a1a; /* Dark background */
-            color: #e0e0e0; /* Light text */
+            background-color: #1a1a1a;
+            color: #e0e0e0;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -39,7 +39,7 @@
         }
         .input-field:focus {
             outline: none;
-            border-color: #ff0000; /* YouTube Red */
+            border-color: #ff0000;
             box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.3);
         }
         .btn {
@@ -54,7 +54,7 @@
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
         }
         .btn-primary {
-            background-color: #ff0000; /* YouTube Red */
+            background-color: #ff0000;
             color: white;
             border: none;
         }
@@ -72,11 +72,11 @@
             border: 1px solid #555;
         }
         .message-box.success {
-            background-color: #16a34a; /* Green-600 */
+            background-color: #16a34a;
             border-color: #15803d;
         }
         .message-box.error {
-            background-color: #dc2626; /* Red-600 */
+            background-color: #dc2626;
             border-color: #b91c1c;
         }
         .loading-overlay {
@@ -110,13 +110,11 @@
     </style>
 </head>
 <body>
-    <div id="loading-overlay" class="loading-overlay">
+    <div id="loading-overlay" class="loading-overlay hidden">
         <div class="spinner"></div>
         <p>Loading...</p>
     </div>
-
-    <!-- Login Section -->
-    <div id="login-section" class="hidden">
+    <div id="login-section">
         <div class="login-card">
             <h2 class="text-3xl font-bold text-center mb-8 text-white">Admin Login</h2>
             <div id="loginMessageBox" class="message-box hidden"></div>
@@ -131,89 +129,61 @@
             <button id="loginBtn" class="btn btn-primary w-full">Login</button>
         </div>
     </div>
-
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-        // Global variables from Canvas environment (මෙම පේළි එලෙසම තබන්න)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        
-        // ඔබගේ firebaseConfig.js ගොනුවේ ඇති සත්‍ය Firebase Config එක මෙහි hardcode කරන්න
-        const firebaseConfig = {
-            apiKey: "AIzaSyAS_398XSo2PPQo27IhnKUUn_-FX7Xl8Zo", // ඔබේ API Key
-            authDomain: "yttest01-47db9.firebaseapp.com",
-            projectId: "yttest01-47db9", // ඔබේ Project ID
-            storageBucket: "yttest01-47db9.firebasestorage.app",
-            messagingSenderId: "1036130118904",
-            appId: "1:1036130118904:web:da3416195b3480c9e01f0d",
-            measurementId: "G-FRHT3PK0FE"
-        };
-
-        // initialAuthToken is not used for email/password auth, but kept for compatibility
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
+    <script src="https://unpkg.com/appwrite"></script>
+    <script>
+        // Appwrite Config
+        const APPWRITE_ENDPOINT = 'https://cloud.appwrite.io/v1';
+        const APPWRITE_PROJECT_ID = '687425e6660c0976dbf6';
+        // Initialize Appwrite
+        const client = new Appwrite.Client();
+        client.setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
+        const account = new Appwrite.Account(client);
         // UI Elements
         const loginEmailInput = document.getElementById('loginEmail');
         const loginPasswordInput = document.getElementById('loginPassword');
         const loginBtn = document.getElementById('loginBtn');
         const loginMessageBox = document.getElementById('loginMessageBox');
-        const loginSection = document.getElementById('login-section');
         const loadingOverlay = document.getElementById('loading-overlay');
-
-        // --- Utility Functions ---
+        // Utility
         function showMessage(message, type = 'info', targetBox = loginMessageBox) {
             targetBox.textContent = message;
             targetBox.className = `message-box ${type} block`;
             setTimeout(() => {
                 targetBox.classList.add('hidden');
-            }, 3000); // Hide after 3 seconds
+            }, 3000);
         }
-
-        // Listen for authentication state changes
-        onAuthStateChanged(auth, (user) => {
-            loadingOverlay.classList.add('hidden'); // Hide loading overlay once auth state is known
-            if (user) {
-                // User is signed in, redirect to admin panel
-                console.log("User signed in:", user.email, "UID:", user.uid);
+        // Check if already logged in
+        async function checkSession() {
+            try {
+                await account.get();
                 window.location.href = 'admin_panel.html';
-            } else {
-                // User is signed out, ensure login form is visible
-                console.log("User signed out.");
-                loginSection.classList.remove('hidden'); // Show login form
+            } catch (e) {
+                // Not logged in
             }
-        });
-
-        // Handle Login
+        }
+        checkSession();
+        // Login
         loginBtn.addEventListener('click', async () => {
             const email = loginEmailInput.value.trim();
             const password = loginPasswordInput.value.trim();
-
             if (!email || !password) {
-                showMessage("Please enter both email and password.", "error");
+                showMessage('Please enter both email and password.', 'error');
                 return;
             }
-
+            loadingOverlay.classList.remove('hidden');
             try {
-                loadingOverlay.classList.remove('hidden'); // Show loading overlay during login attempt
-                await signInWithEmailAndPassword(auth, email, password);
-                showMessage("Logged in successfully!", "success");
-                // Redirection handled by onAuthStateChanged listener
+                await account.createEmailSession(email, password);
+                showMessage('Logged in successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'admin_panel.html';
+                }, 1000);
             } catch (error) {
-                loadingOverlay.classList.add('hidden'); // Hide loading overlay on error
-                console.error("Login error:", error.code, error.message);
-                let errorMessage = "Login failed. Please check your credentials.";
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    errorMessage = "Invalid email or password.";
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = "Invalid email format.";
+                loadingOverlay.classList.add('hidden');
+                let errorMessage = 'Login failed. Please check your credentials.';
+                if (error.code === 401) {
+                    errorMessage = 'Invalid email or password.';
                 }
-                showMessage(errorMessage, "error");
+                showMessage(errorMessage, 'error');
             }
         });
     </script>
