@@ -310,8 +310,7 @@
                     Body: body,   
                     imageUrl: imageUrl || null, 
                     postUrl: postUrl || null,   
-                    timestamp: new Date().toISOString(),
-                    isActive: true
+                    timestamp: new Date().toISOString()
                 };
 
                 await databases.createDocument(
