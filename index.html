@@ -1,14 +1,96 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Appwrite Test Login</title>
-  <script src="https://unpkg.com/appwrite"></script>
+  <title>Admin Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.1"></script>
+    <style>
+        body {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+      min-height: 100vh;
+            display: flex;
+      align-items: center;
+            justify-content: center;
+            margin: 0;
+      font-family: 'Segoe UI', 'Inter', Arial, sans-serif;
+        }
+        .login-card {
+      background: #18181b;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px 0 rgba(0,0,0,0.45);
+      padding: 2.5rem 2rem 2rem 2rem;
+      max-width: 370px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 1.5px solid #ff0000;
+    }
+    .login-title {
+      color: #ff0000;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 8px #000a;
+        }
+        .input-field {
+      width: 100%;
+      padding: 0.85rem 1.1rem;
+      margin-bottom: 1.2rem;
+            border-radius: 10px;
+      border: 1.5px solid #333;
+      background: #232323;
+      color: #fff;
+      font-size: 1rem;
+      transition: border 0.2s, box-shadow 0.2s;
+      outline: none;
+        }
+        .input-field:focus {
+      border: 1.5px solid #ff0000;
+      box-shadow: 0 0 0 2px #ff000055;
+        }
+    .login-btn {
+      width: 100%;
+      padding: 0.9rem 0;
+      background: linear-gradient(90deg, #ff0000 0%, #b91c1c 100%);
+      color: #fff;
+            font-weight: 700;
+      font-size: 1.1rem;
+            border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px #000a;
+      transition: background 0.2s, transform 0.1s;
+        }
+    .login-btn:hover {
+      background: linear-gradient(90deg, #b91c1c 0%, #ff0000 100%);
+      transform: translateY(-2px) scale(1.03);
+        }
+    .result-message {
+      margin-top: 1.2rem;
+            color: #fff;
+      font-size: 1rem;
+      min-height: 1.5em;
+            text-align: center;
+            font-weight: 500;
+    }
+    @media (max-width: 500px) {
+      .login-card {
+        padding: 1.5rem 0.5rem 1.5rem 0.5rem;
+      }
+        }
+    </style>
 </head>
 <body>
-  <input id="email" placeholder="Email"><br>
-  <input id="password" type="password" placeholder="Password"><br>
-  <button id="login">Login</button>
-  <div id="result"></div>
+  <form class="login-card" onsubmit="return false;">
+    <div class="login-title">Admin Login</div>
+    <input id="email" class="input-field" type="email" placeholder="Email" autocomplete="username" required>
+    <input id="password" class="input-field" type="password" placeholder="Password" autocomplete="current-password" required>
+    <button id="login" class="login-btn" type="submit">Login</button>
+    <div id="result" class="result-message"></div>
+  </form>
   <script>
     const client = new Appwrite.Client();
     client.setEndpoint('https://fra.cloud.appwrite.io/v1').setProject('687425e6660c0976dbf6');
@@ -17,14 +99,19 @@
     document.getElementById('login').onclick = async () => {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
+      const resultDiv = document.getElementById('result');
+      resultDiv.textContent = '';
       try {
         await account.createEmailSession(email, password);
-        document.getElementById('result').innerText = 'Login success!';
+        resultDiv.textContent = 'Login success! Redirecting...';
+            setTimeout(() => {
+                window.location.href = 'admin_panel.html';
+        }, 1000);
       } catch (e) {
-        document.getElementById('result').innerText = 'Error: ' + e.message;
-        console.log(e);
-      }
+        resultDiv.textContent = 'Error: ' + (e.message || 'Login failed');
+        resultDiv.style.color = '#ff0000';
+                }
     };
-  </script>
+    </script>
 </body>
 </html>
